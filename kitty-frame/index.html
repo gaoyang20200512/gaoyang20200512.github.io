@@ -117,17 +117,17 @@
   }
   .panel{position:absolute;transform-style:preserve-3d;border-radius:7px}
   .page{
-    top:32px;height:396px;width:260px;
+    top:32px;height:396px;width:310px;
     background:linear-gradient(168deg,#fbf7ee 0%, #f3ecdd 46%, #e9dfca 100%);
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.6), inset 0 -30px 44px -28px rgba(74,47,30,.22);
   }
   .page.left{left:0;transform-origin:right center;transform:rotateY(31deg)}
-  .page.right{left:560px;transform-origin:left center;transform:rotateY(-31deg)}
+  .page.right{left:510px;transform-origin:left center;transform:rotateY(-31deg)}
   .layers{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
   .layers i{position:absolute;inset:0;border-radius:5px;display:block}
 
   .center{
-    left:260px;top:18px;width:300px;height:424px;border-radius:9px;
+    left:310px;top:18px;width:200px;height:424px;border-radius:9px;
     background:
       radial-gradient(120% 80% at 24% 0%, #8a5f3f 0%, #6d4b33 42%, #4a2f1e 100%);
     box-shadow:
@@ -140,15 +140,15 @@
     background-image:repeating-linear-gradient(96deg, rgba(255,255,255,.045) 0 1px, rgba(0,0,0,.03) 1px 2px, transparent 2px 7px);
     opacity:.55;mix-blend-mode:overlay;
   }
-  .hinge{position:absolute;left:-13px;width:14px;height:30px;border-radius:3px;
+  .hinge{position:absolute;left:-11px;width:12px;height:26px;border-radius:3px;
     background:linear-gradient(180deg,#d9b273,#a4763c 55%,#8a5f2c);
     box-shadow:0 1px 2px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,235,200,.35);
     transform:translateZ(4px);
   }
-  .hinge.h1{top:66px}
-  .hinge.h2{top:310px}
+  .hinge.h1{top:108px}
+  .hinge.h2{top:286px}
   .screen{
-    position:absolute;left:22px;top:26px;width:256px;height:334px;border-radius:4px;
+    position:absolute;left:30px;top:96px;width:140px;height:186px;border-radius:4px;
     background:#0a0806;overflow:hidden;
     box-shadow:0 0 0 1px rgba(0,0,0,.6), inset 0 0 26px rgba(0,0,0,.9), 0 0 26px rgba(255,190,120,.10);
     transform:translateZ(1px);
@@ -175,9 +175,9 @@
   @keyframes flash{from{opacity:.95}to{opacity:0}}
 
   .bubble{
-    position:absolute;left:50%;top:22px;transform:translate(-50%,-6px) scale(.9);
-    background:rgba(250,246,236,.94);color:#2a2118;font-size:12px;letter-spacing:.12em;
-    padding:5px 12px;border-radius:11px;white-space:nowrap;opacity:0;pointer-events:none;
+    position:absolute;left:50%;top:12px;transform:translate(-50%,-6px) scale(.9);
+    background:rgba(250,246,236,.94);color:#2a2118;font-size:10px;letter-spacing:.08em;
+    padding:4px 9px;border-radius:9px;white-space:nowrap;opacity:0;pointer-events:none;
     transition:opacity .25s ease, transform .25s cubic-bezier(.2,1.4,.5,1);
     box-shadow:0 3px 12px rgba(0,0,0,.3);
   }
@@ -186,21 +186,21 @@
 
   .hidecard{
     position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-    gap:10px;padding-bottom:26px;opacity:0;transition:opacity .5s ease;pointer-events:none;
+    gap:8px;padding-bottom:18px;opacity:0;transition:opacity .5s ease;pointer-events:none;
     background:radial-gradient(90% 70% at 50% 30%, #14100c, #070605 78%);
   }
   .hidecard.on{opacity:1}
-  .eyes{display:flex;gap:34px;margin-bottom:6px}
-  .eyes span{width:13px;height:13px;border-radius:50%;background:#ffcf7a;box-shadow:0 0 14px 4px rgba(255,190,90,.55);animation:blink 4.2s infinite}
+  .eyes{display:flex;gap:20px;margin-bottom:4px}
+  .eyes span{width:10px;height:10px;border-radius:50%;background:#ffcf7a;box-shadow:0 0 12px 3px rgba(255,190,90,.55);animation:blink 4.2s infinite}
   @keyframes blink{0%,42%,100%{transform:scaleY(1)}48%,52%{transform:scaleY(.08)}}
-  .hidecard p{margin:0;font-size:10.5px;letter-spacing:.18em;color:#9c8f7c}
+  .hidecard p{margin:0;font-size:8px;letter-spacing:.1em;color:#9c8f7c}
 
   .nameplate{
-    position:absolute;left:50%;bottom:16px;transform:translateX(-50%) translateZ(1px);
-    font-family:"Cormorant Garamond",serif;font-size:9px;letter-spacing:.34em;text-transform:uppercase;
+    position:absolute;left:50%;bottom:108px;transform:translateX(-50%) translateZ(1px);
+    font-family:"Cormorant Garamond",serif;font-size:8px;letter-spacing:.26em;text-transform:uppercase;
     color:rgba(240,214,176,.72);white-space:nowrap;
   }
-  .nameplate::before,.nameplate::after{content:"";display:inline-block;width:18px;height:1px;background:rgba(240,214,176,.34);vertical-align:middle;margin:0 8px}
+  .nameplate::before,.nameplate::after{content:"";display:inline-block;width:10px;height:1px;background:rgba(240,214,176,.34);vertical-align:middle;margin:0 6px}
 
   /* polaroid on page */
   .polaroid{
@@ -213,10 +213,10 @@
     position:absolute;left:0;right:0;bottom:7px;text-align:center;
     font-family:"Cormorant Garamond",serif;font-style:italic;font-size:10.5px;letter-spacing:.14em;color:#7a6a56;
   }
-  .p1{left:34px;top:44px;width:158px;transform:rotate(-4.2deg) translateZ(1px)}
-  .p2{right:34px;top:66px;width:148px;transform:rotate(3.4deg) translateZ(1px)}
+  .p1{left:48px;top:44px;width:176px;transform:rotate(-4.2deg) translateZ(1px)}
+  .p2{right:48px;top:66px;width:164px;transform:rotate(3.4deg) translateZ(1px)}
   .handnote{
-    position:absolute;left:36px;right:36px;bottom:34px;font-size:10.5px;line-height:1.9;color:#8a7a63;letter-spacing:.06em;
+    position:absolute;left:48px;right:48px;bottom:34px;font-size:10.5px;line-height:1.9;color:#8a7a63;letter-spacing:.06em;
     transform:translateZ(1px);
   }
   .handnote b{display:block;font-weight:400;color:#6a5a45;margin-bottom:2px}
@@ -380,7 +380,7 @@
     <div class="wordmark"><b>猫页</b><span>Nekopage</span></div>
     <div class="meta">
       <span><span class="dot"></span>概念原型 No.03</span>
-      <span>10.1″ / 亚麻 · 胡桃木</span>
+      <span>10″ 相册 / 亚麻 · 胡桃木</span>
       <span>互动相册</span>
     </div>
   </header>
@@ -393,6 +393,7 @@
       <p>合上时，它是一本可以翻的亚麻相册；打开时，中间那块<span class="hl">哑光屏</span>里住着一只猫。</p>
       <p>你把手按在屏上，它就眯起眼凑过来，喉咙里发出呼噜声。<br>你要是<span class="hl">拍一下相框</span>——它会炸毛、倒退、冲你哈气。</p>
       <div class="chips">
+        <span class="chip"><i>●</i>10″ 相册 · 5″ 屏</span>
         <span class="chip"><i>●</i>可拖拽 360° 旋转</span>
         <span class="chip"><i>●</i>三种视角</span>
         <span class="chip"><i>●</i>屏幕真的能摸</span>
@@ -481,10 +482,10 @@
 
   <!-- ================= 实物质感渲染 ================= -->
   <figure class="wide-shot reveal">
-    <img src="assets/hero.jpg" alt="猫页相册实物质感渲染图">
+    <img src="assets/hero.jpg" alt="10 寸猫页相册实物质感渲染图">
     <figcaption>
-      <span>实物质感渲染 · 亚麻封面 + 胡桃木中框 + 哑光屏</span>
-      <b>28mm thick / 10.1″ screen</b>
+      <span>实物质感渲染 · 10 寸相册 + 5 寸哑光屏</span>
+      <b>10″ album / 5″ screen</b>
     </figcaption>
   </figure>
 
@@ -494,19 +495,19 @@
       <div class="no"><b>01</b>Assembly<em>怎么装进相册</em></div>
       <div>
         <h2>把一块屏，做成一本能摊开的书</h2>
-        <p>不是把平板塞进相框，而是做成一本书：左右是真正可以贴照片的厚纸页，中缝用胡桃木嵌一块 10.1 寸竖屏，外面覆一层哑光防眩玻璃。整机厚度约 28mm，背面一个 USB-C 和一个小扬声器腔体。</p>
+        <p>相册整体为 10 寸（合上约 20×25cm），不是 10 寸大屏。打开后，左右是可以贴照片的厚纸页，中缝用胡桃木嵌一块约 5 寸的小竖屏，外面覆一层哑光防眩玻璃。整机厚度约 24mm，背面一个 USB-C 和一个小扬声器腔体。</p>
       </div>
     </div>
 
     <div class="assembly">
       <figure class="shot reveal" style="margin:0">
-        <img src="assets/exploded.jpg" alt="相册相框爆炸结构图">
+        <img src="assets/exploded.jpg" alt="10 寸相册与小屏模组爆炸结构图">
         <figcaption>爆炸图 · 前面板 / 屏 / 主板 / 扬声器 / 电池 / 亚麻背壳</figcaption>
       </figure>
       <ol class="stacklist reveal">
         <li><div><b>哑光防眩亚克力</b><em>贴屏面，把「屏幕感」压下去，让猫像印在纸上</em></div><span>1.2mm</span></li>
-        <li><div><b>10.1″ 竖屏 LCD / 墨水色域</b><em>1280×800 起步，亮度自动跟随环境光</em></div><span>核心件</span></li>
-        <li><div><b>胡桃木中框</b><em>嵌入屏体，四周留 22mm 木边，形成相册中缝</em></div><span>CNC</span></li>
+        <li><div><b>5″ LCD / 竖装 4:3</b><em>480×640 起步，亮度自动跟随环境光</em></div><span>核心件</span></li>
+        <li><div><b>胡桃木中框</b><em>嵌入小屏模组，四周留 10–12mm 木边</em></div><span>CNC</span></li>
         <li><div><b>主控板 + 触摸排线</b><em>RK3566 级别即可硬解 1080p，开机 3 秒进猫</em></div><span>SoC</span></li>
         <li><div><b>2W 扬声器 + 音腔</b><em>呼噜、哈气、翻页声，全部从纸页里传出来</em></div><span>音频</span></li>
         <li><div><b>5000mAh 电池</b><em>一天 8 小时亮屏续航，桌面磁吸充电</em></div><span>供电</span></li>
@@ -605,7 +606,7 @@
       <div class="card reveal">
         <h3>上屏的关键参数</h3>
         <ul class="spec">
-          <li><span>屏幕</span><span>10.1″ 竖屏 1280×800，哑光防眩</span></li>
+          <li><span>相册 / 屏幕</span><span>整体 10″ / 中央 5″ 竖装屏</span></li>
           <li><span>主控</span><span>RK3566 / 4 核，硬解 H.264</span></li>
           <li><span>单条片段</span><span>3–5 秒，24fps，首尾帧对齐</span></li>
           <li><span>切换方式</span><span>120ms 交叉淡入 + 屏内微震</span></li>
