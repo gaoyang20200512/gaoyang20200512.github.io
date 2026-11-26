@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>10.1 寸相框 · 3D 结构图</title>
+<style>
+  :root{
+    --bg:#0e1013; --panel:rgba(23,26,31,.92); --line:#2a2f37;
+    --text:#e8eaed; --dim:#98a2ad; --accent:#6ea8fe; --warm:#e0a35c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;}
+  canvas{display:block}
+
+  #hud{position:fixed;left:18px;top:18px;width:300px;padding:16px 18px;border-radius:14px;
+    background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(10px);z-index:10}
+  #hud h1{margin:0 0 2px;font-size:15px;font-weight:600;letter-spacing:.3px}
+  #hud .sub{font-size:11px;color:var(--dim);margin-bottom:12px}
+  #hud table{width:100%;border-collapse:collapse;font-size:11.5px}
+  #hud td{padding:4px 0;border-bottom:1px dashed rgba(255,255,255,.06);vertical-align:top}
+  #hud td:first-child{color:var(--dim);white-space:nowrap;padding-right:10px}
+  #hud td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+  #hud .key{color:var(--accent)}
+
+  #hint{position:fixed;right:18px;top:18px;padding:10px 14px;border-radius:10px;font-size:11.5px;
+    color:var(--dim);background:var(--panel);border:1px solid var(--line);z-index:10;line-height:1.7}
+  #hint b{color:var(--text);font-weight:500}
+
+  #bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:flex;gap:8px;
+    align-items:center;padding:10px 14px;border-radius:14px;background:var(--panel);
+    border:1px solid var(--line);backdrop-filter:blur(10px);z-index:10;flex-wrap:wrap;justify-content:center}
+  button{appearance:none;border:1px solid var(--line);background:#1e2229;color:var(--text);
+    font-size:12px;padding:7px 12px;border-radius:8px;cursor:pointer;transition:.15s}
+  button:hover{background:#262b33;border-color:#3a414c}
+  button.on{background:rgba(110,168,254,.16);border-color:rgba(110,168,254,.55);color:#cfe1ff}
+  .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+  .slider{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+  input[type=range]{width:110px;accent-color:var(--accent)}
+
+  .lbl{padding:3px 7px;border-radius:6px;font-size:10.5px;line-height:1.4;color:#dfe6ee;
+    background:rgba(16,19,23,.86);border:1px solid rgba(120,140,165,.32);
+    white-space:nowrap;pointer-events:none;transform:translateY(-50%)}
+  .lbl b{color:var(--accent);font-weight:600}
+  .lbl.warm b{color:var(--warm)}
+
+  #err{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:40px;
+    font-size:13px;color:var(--dim);line-height:2;z-index:99;background:var(--bg)}
+
+  @media (max-width:760px){
+    #hud{width:calc(100% - 36px);max-width:320px}
+    #hint{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <h1>10.1 寸相框 · 结构模型</h1>
+  <div class="sub">木框 / 玻璃 / 内衬 / 屏组 / 主板 / 背板 / 支架</div>
+  <table>
+    <tr><td>外框</td><td class="key">300 × 218 × 26 mm</td></tr>
+    <tr><td>可视区</td><td>216.9 × 135.6 mm</td></tr>
+    <tr><td>屏幕</td><td>10.1″ 16:10 · 1280×800</td></tr>
+    <tr><td>屏幕模组</td><td>232 × 146 × 3 mm</td></tr>
+    <tr><td>木框边宽</td><td>25 mm</td></tr>
+    <tr><td>内衬边宽</td><td>15 mm</td></tr>
+    <tr><td>内部净空</td><td>250 × 168 × 21 mm</td></tr>
+    <tr><td>主板上限</td><td>110 × 70 × 10 mm</td></tr>
+    <tr><td>背板</td><td>296 × 214 × 2.5 mm</td></tr>
+  </table>
+</div>
+
+<div id="hint">
+  <b>拖拽</b> 旋转 · <b>滚轮</b> 缩放 · <b>右键</b> 平移
+</div>
+
+<div id="bar">
+  <button data-view="iso" class="on">等轴测</button>
+  <button data-view="front">正视</button>
+  <button data-view="side">侧视</button>
+  <button data-view="top">俯视</button>
+  <div class="sep"></div>
+  <div class="slider"><span>爆炸</span><input id="explode" type="range" min="0" max="100" value="55"></div>
+  <div class="sep"></div>
+  <button id="btn-label" class="on">标注</button>
+  <button id="btn-wire">线框</button>
+  <button id="btn-rotate">自转</button>
+</div>
+
+<div id="err">Three.js 加载失败，请检查网络后刷新页面。</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+/* ---------- 基础场景 ---------- */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0e1013);
+scene.fog = new THREE.Fog(0x0e1013, 1500, 2800);
+
+const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 1, 6000);
+camera.position.set(470, 320, 640);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+Object.assign(labelRenderer.domElement.style, {
+  position: 'fixed', top: '0', left: '0', pointerEvents: 'none'
+});
+document.body.appendChild(labelRenderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.075;
+controls.minDistance = 300;
+controls.maxDistance = 1900;
+controls.autoRotateSpeed = 0.9;
+
+/* ---------- 灯光 ---------- */
+scene.add(new THREE.HemisphereLight(0xc2d6ff, 0x14161a, 1.15));
+
+const key = new THREE.DirectionalLight(0xffffff, 2.5);
+key.position.set(430, 640, 520);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.near = 200;
+key.shadow.camera.far = 2400;
+key.shadow.camera.left = -520;
+key.shadow.camera.right = 520;
+key.shadow.camera.top = 520;
+key.shadow.camera.bottom = -520;
+key.shadow.bias = -0.0006;
+scene.add(key);
+
+const fill = new THREE.DirectionalLight(0x86a8ff, 0.75);
+fill.position.set(-560, 220, 380);
+scene.add(fill);
+
+const rim = new THREE.DirectionalLight(0xffcf9a, 0.65);
+rim.position.set(-240, 320, -640);
+scene.add(rim);
+
+/* ---------- 地面 ---------- */
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(4000, 4000),
+  new THREE.ShadowMaterial({ opacity: 0.3 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -152;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const grid = new THREE.GridHelper(1800, 36, 0x2b323b, 0x1a1f25);
+grid.position.y = -151;
+scene.add(grid);
+
+/* ---------- 参数（单位 mm，1 unit = 1mm） ---------- */
+const P = {
+  OUTER_W: 300, OUTER_H: 218, DEPTH: 26,
+  OPEN_W: 250, OPEN_H: 168,
+  GLASS_W: 249.5, GLASS_H: 167.5, GLASS_T: 1.5,
+  MAT_T: 1.2, MAT_WIN_W: 218, MAT_WIN_H: 136.8,
+  PANEL_W: 232, PANEL_H: 146, PANEL_T: 3,
+  ACTIVE_W: 216.9, ACTIVE_H: 135.6
+};
+
+/* ---------- 材质 ---------- */
+const matWood = new THREE.MeshStandardMaterial({ color: 0x7a4a2b, roughness: 0.78, metalness: 0.06 });
+const matGlass = new THREE.MeshPhysicalMaterial({
+  color: 0xd6e6ee, roughness: 0.08, metalness: 0,
+  transparent: true, opacity: 0.16, depthWrite: false,
+  clearcoat: 1, clearcoatRoughness: 0.05, side: THREE.DoubleSide
+});
+const matMat = new THREE.MeshStandardMaterial({ color: 0x14161a, roughness: 0.95, metalness: 0 });
+const matPanel = new THREE.MeshStandardMaterial({ color: 0x0b0d10, roughness: 0.55, metalness: 0.25 });
+const matScreen = new THREE.MeshStandardMaterial({
+  color: 0x0a1119, emissive: 0x1e4258, emissiveIntensity: 0.85, roughness: 0.25, metalness: 0.1
+});
+const matPcb = new THREE.MeshStandardMaterial({ color: 0x1c5c42, roughness: 0.7, metalness: 0.15 });
+const matPcb2 = new THREE.MeshStandardMaterial({ color: 0x1b3a5c, roughness: 0.7, metalness: 0.15 });
+const matDark = new THREE.MeshStandardMaterial({ color: 0x23272e, roughness: 0.8, metalness: 0.2 });
+const matMetal = new THREE.MeshStandardMaterial({ color: 0x8a9099, roughness: 0.4, metalness: 0.85 });
+const matChip = new THREE.MeshStandardMaterial({ color: 0x2b2f36, roughness: 0.6, metalness: 0.4 });
+
+/* ---------- 工具 ---------- */
+const model = new THREE.Group();
+scene.add(model);
+
+const allMeshes = [];
+
+function ringGeometry(ow, oh, iw, ih, depth) {
+  const s = new THREE.Shape();
+  s.moveTo(-ow / 2, -oh / 2);
+  s.lineTo(ow / 2, -oh / 2);
+  s.lineTo(ow / 2, oh / 2);
+  s.lineTo(-ow / 2, oh / 2);
+  s.lineTo(-ow / 2, -oh / 2);
+  const h = new THREE.Path();
+  h.moveTo(-iw / 2, -ih / 2);
+  h.lineTo(-iw / 2, ih / 2);
+  h.lineTo(iw / 2, ih / 2);
+  h.lineTo(iw / 2, -ih / 2);
+  h.lineTo(-iw / 2, -ih / 2);
+  s.holes.push(h);
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 1 });
+  g.translate(0, 0, -depth / 2);
+  return g;
+}
+
+function makeLabel(text, warm) {
+  const el = document.createElement('div');
+  el.className = 'lbl' + (warm ? ' warm' : '');
+  el.innerHTML = text;
+  return new CSS2DObject(el);
+}
+
+const parts = [];      // { obj, base, ez }
+let labelsOn = true;
+
+function addPart(obj, base, explodeZ, labelText, labelOffset, warm) {
+  obj.position.set(base[0], base[1], base[2]);
+  obj.traverse(o => {
+    if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; allMeshes.push(o); }
+  });
+  model.add(obj);
+  parts.push({ obj, base: new THREE.Vector3(base[0], base[1], base[2]), ez: explodeZ });
+
+  if (labelText) {
+    const lbl = makeLabel(labelText, warm);
+    lbl.position.set(labelOffset[0], labelOffset[1], labelOffset[2]);
+    obj.add(lbl);
+    lbl.userData.isLabel = true;
+  }
+  return obj;
+}
+
+/* ---------- 1. 木框 ---------- */
+const frame = new THREE.Mesh(
+  ringGeometry(P.OUTER_W, P.OUTER_H, P.OPEN_W, P.OPEN_H, P.DEPTH),
+  matWood
+);
+addPart(frame, [0, 0, 0], 0, '木框 <b>300 × 218 × 26</b>', [0, 128, 0]);
+
+/* 木框倒角内沿（装饰线） */
+const innerLine = new THREE.Mesh(
+  ringGeometry(P.OPEN_W + 2, P.OPEN_H + 2, P.OPEN_W - 2, P.OPEN_H - 2, 1),
+  matMetal
+);
+innerLine.position.set(0, 0, P.DEPTH / 2 - 0.5);
+frame.add(innerLine);
+
+/* ---------- 2. 前玻璃 ---------- */
+const glass = new THREE.Mesh(
+  new THREE.BoxGeometry(P.GLASS_W, P.GLASS_H, P.GLASS_T),
+  matGlass
+);
+addPart(glass, [0, 0, 13 - P.GLASS_T / 2], 92, '哑光玻璃 <b>1.5 mm</b>', [-160, 92, 0]);
+
+/* ---------- 3. 内衬 ---------- */
+const matBoard = new THREE.Mesh(
+  ringGeometry(P.GLASS_W, P.GLASS_H, P.MAT_WIN_W, P.MAT_WIN_H, P.MAT_T),
+  matMat
+);
+addPart(matBoard, [0, 0, 11.5 - P.MAT_T / 2], 72, '深色内衬 <b>15 mm</b>', [158, 92, 0]);
+
+/* ---------- 4. 屏幕模组 ---------- */
+const panel = new THREE.Group();
+
+const panelBody = new THREE.Mesh(
+  new THREE.BoxGeometry(P.PANEL_W, P.PANEL_H, P.PANEL_T),
+  matPanel
+);
+panel.add(panelBody);
+
+const active = new THREE.Mesh(
+  new THREE.BoxGeometry(P.ACTIVE_W, P.ACTIVE_H, 0.4),
+  matScreen
+);
+active.position.set(0, 0, P.PANEL_T / 2 + 0.1);
+panel.add(active);
+
+/* 可视区描边 */
+const activeEdge = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(P.ACTIVE_W, P.ACTIVE_H, 0.4)),
+  new THREE.LineBasicMaterial({ color: 0x6ea8fe, transparent: true, opacity: 0.55 })
+);
+activeEdge.position.copy(active.position);
+panel.add(activeEdge);
+
+/* 屏幕排线 */
+const fpc = new THREE.Mesh(new THREE.BoxGeometry(26, 0.4, 8), matDark);
+fpc.position.set(30, -P.PANEL_H / 2 + 6, -1);
+panel.add(fpc);
+
+addPart(panel, [0, 0, 10.5 - P.PANEL_T / 2], 52,
+  '屏幕模组 <b>232×146×3</b>', [0, -98, 0]);
+
+/* ---------- 5. 驱动板 ---------- */
+const driver = new THREE.Group();
+const driverPcb = new THREE.Mesh(new THREE.BoxGeometry(62, 40, 3), matPcb);
+driver.add(driverPcb);
+const driverChip = new THREE.Mesh(new THREE.BoxGeometry(18, 18, 2.2), matChip);
+driverChip.position.set(-12, 2, 2.6);
+driver.add(driverChip);
+addPart(driver, [58, -26, 4.2], 32, '屏驱动板', [0, -32, 0]);
+
+/* ---------- 6. 主板 ---------- */
+const mainboard = new THREE.Group();
+const mbPcb = new THREE.Mesh(new THREE.BoxGeometry(110, 70, 1.6), matPcb2);
+mainboard.add(mbPcb);
+const soc = new THREE.Mesh(new THREE.BoxGeometry(16, 16, 2.4), matChip);
+soc.position.set(-26, 8, 2);
+mainboard.add(soc);
+const ram = new THREE.Mesh(new THREE.BoxGeometry(24, 12, 1.8), matChip);
+ram.position.set(4, 12, 1.9);
+mainboard.add(ram);
+const usbc = new THREE.Mesh(new THREE.BoxGeometry(9, 4.2, 3.2), matMetal);
+usbc.position.set(0, -36, -0.6);
+mainboard.add(usbc);
+addPart(mainboard, [0, -6, -2.4], 0, '主板 <b>110 × 70</b>', [0, -52, 0]);
+
+/* ---------- 7. 传感器小板 ---------- */
+const sensor = new THREE.Group();
+const sensPcb = new THREE.Mesh(new THREE.BoxGeometry(22, 16, 1.2), matPcb);
+sensor.add(sensPcb);
+const ldr = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 1.4, 16), matMetal);
+ldr.rotation.x = Math.PI / 2;
+ldr.position.set(-5, 3, 1.2);
+sensor.add(ldr);
+addPart(sensor, [-88, 64, 6], 34, '光感 / 毫米波', [0, 26, 0]);
+
+/* ---------- 8. 扬声器 ×2 ---------- */
+[-1, 1].forEach((s, i) => {
+  const spk = new THREE.Mesh(
+    new THREE.CylinderGeometry(10, 10, 5, 24),
+    matDark
+  );
+  spk.rotation.x = Math.PI / 2;
+  const grp = new THREE.Group();
+  grp.add(spk);
+  addPart(grp, [s * 98, -64, 0], 0,
+    i === 0 ? '扬声器 ⌀20' : '', [0, -22, 0]);
+});
+
+/* ---------- 9. 背板 ---------- */
+const back = new THREE.Group();
+const backPlate = new THREE.Mesh(new THREE.BoxGeometry(296, 214, 2.5), matDark);
+back.add(backPlate);
+/* 散热孔阵列 */
+const holeGeo = new THREE.CircleGeometry(1.8, 10);
+const holeMat = new THREE.MeshBasicMaterial({ color: 0x05070a });
+for (let r = 0; r < 5; r++) {
+  for (let c = 0; c < 9; c++) {
+    const h = new THREE.Mesh(holeGeo, holeMat);
+    h.position.set(-56 + c * 14, 52 - r * 9, -1.4);
+    back.add(h);
+  }
+}
+addPart(back, [0, 0, -13 + 1.25], -48, '背板 <b>296 × 214 × 2.5</b>', [0, -120, 0]);
+
+/* ---------- 10. 支架 ---------- */
+const stand = new THREE.Group();
+const leg = new THREE.Mesh(new THREE.BoxGeometry(26, 78, 3), matMetal);
+leg.rotation.x = -0.32;
+leg.position.set(0, -6, 0);
+stand.add(leg);
+const foot = new THREE.Mesh(new THREE.BoxGeometry(26, 3, 26), matMetal);
+foot.position.set(0, -44, 14);
+stand.add(foot);
+addPart(stand, [0, -92, -34], -78, '折叠支架', [0, -30, 0]);
+
+/* ---------- 标注可见性 ---------- */
+model.traverse(o => { if (o.isCSS2DObject && !o.userData.isLabel) {} });
+
+const labelObjs = [];
+model.traverse(o => {
+  if (o.isCSS2DObject) labelObjs.push(o);
+});
+function applyLabelVisibility() {
+  labelObjs.forEach(o => { o.visible = labelsOn; });
+  labelRenderer.domElement.style.display = labelsOn ? '' : 'none';
+}
+applyLabelVisibility();
+
+/* ---------- 爆炸 ---------- */
+const explodeInput = document.getElementById('explode');
+let explodeT = Number(explodeInput.value) / 100;
+
+function applyExplode() {
+  parts.forEach(p => {
+    p.obj.position.set(
+      p.base.x,
+      p.base.y,
+      p.base.z + p.ez * explodeT
+    );
+  });
+}
+applyExplode();
+
+explodeInput.addEventListener('input', e => {
+  explodeT = Number(e.target.value) / 100;
+  applyExplode();
+});
+
+/* ---------- 相机视角 ---------- */
+let camGoal = null;
+const views = {
+  iso:   new THREE.Vector3(470, 320, 640),
+  front: new THREE.Vector3(0, 0, 900),
+  side:  new THREE.Vector3(900, 40, 0),
+  top:   new THREE.Vector3(0, 900, 1)
+};
+
+document.querySelectorAll('[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    camGoal = views[btn.dataset.view].clone();
+    controls.target.set(0, 0, 0);
+  });
+});
+
+/* ---------- 按钮 ---------- */
+let wire = false;
+document.getElementById('btn-wire').addEventListener('click', e => {
+  wire = !wire;
+  e.currentTarget.classList.toggle('on', wire);
+  allMeshes.forEach(m => { if (m.material) m.material.wireframe = wire; });
+});
+
+document.getElementById('btn-label').addEventListener('click', e => {
+  labelsOn = !labelsOn;
+  e.currentTarget.classList.toggle('on', labelsOn);
+  applyLabelVisibility();
+});
+
+document.getElementById('btn-rotate').addEventListener('click', e => {
+  controls.autoRotate = !controls.autoRotate;
+  e.currentTarget.classList.toggle('on', controls.autoRotate);
+});
+
+/* ---------- 自适应 ---------- */
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  labelRenderer.setSize(innerWidth, innerHeight);
+});
+
+/* ---------- 渲染 ---------- */
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (camGoal) {
+    camera.position.lerp(camGoal, 0.14);
+    if (camera.position.distanceTo(camGoal) < 1.5) { camera.position.copy(camGoal); camGoal = null; }
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
